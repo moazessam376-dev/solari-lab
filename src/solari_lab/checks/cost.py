@@ -5,12 +5,10 @@ from __future__ import annotations
 import time
 from collections import defaultdict
 
-from rich.table import Table
-
 from .. import ledger
 from ..context import Context
 from ..rates import FETCHED, browser_cost, vm_cost
-from ..theme import badge, console, verdict
+from ..theme import console, footer, method, table
 from . import Result
 
 UNITS = {"h": 3600, "d": 86400, "w": 7 * 86400, "m": 60}
@@ -63,9 +61,14 @@ async def run(ctx: Context, *, since: str = "7d") -> Result:
 
 def render(r: Result) -> None:
     d = r.data
-    t = Table(header_style="table.header", border_style="table.border", pad_edge=False)
-    for col in ("day", "sessions", "runtime", "browser", "vm", "total"):
-        t.add_column(col, justify="right" if col != "day" else "left")
+    t = table(
+        ("day", "left"),
+        ("sessions", "right"),
+        ("runtime", "right"),
+        ("browser", "right"),
+        ("vm", "right"),
+        ("total", "right"),
+    )
     for day, v in d["by_day"].items():
         b, vm = v.get("browser", 0.0), v.get("sandbox", 0.0) + v.get("desktop", 0.0)
         t.add_row(
@@ -78,21 +81,16 @@ def render(r: Result) -> None:
         )
     console.print(t)
     if d["by_option"]:
-        t2 = Table(header_style="table.header", border_style="table.border", pad_edge=False)
-        t2.add_column("options")
-        t2.add_column("sessions", justify="right")
-        t2.add_column("cost", justify="right")
-        for k, v in sorted(d["by_option"].items(), key=lambda kv: -kv[1]["cost"]):
+        console.print()
+        t2 = table(("options", "left"), ("sessions", "right"), ("cost", "right"))
+        for k, v in sorted(d["by_option"].items(), key=lambda kv_: -kv_[1]["cost"]):
             t2.add_row(k, f"{int(v['sessions'])}", f"${v['cost']:.4f}")
         console.print(t2)
     if d["ran_to_deadline"]:
         console.print(
-            f"[fail]{len(d['ran_to_deadline'])} session(s) still open at the plan deadline: they billed the full session length[/fail]"
+            f"  [fail]{len(d['ran_to_deadline'])} session(s) still open at the plan deadline: they billed the full session length[/fail]"
         )
-    console.print(
-        f"[muted]estimate from the local ledger × rate card fetched {d['rates_fetched']} for plan {d['plan']}; proxy GB and captcha solves are not metered here[/muted]"
+    method(
+        f"estimate from the local ledger × rate card fetched {d['rates_fetched']} for plan {d['plan']} · proxy GB and captcha solves are not metered here"
     )
-    console.print()
-    console.print(
-        f"{badge('COST')} [num]${d['total_usd']:.3f}[/num] {verdict(r.ok, 'OK', 'WASTE')} [muted]{r.summary}[/muted]"
-    )
+    footer("cost", r.ok, ("OK", "WASTE", "SKIP"), f"[num]${d['total_usd']:.3f}[/num] · {r.summary}")

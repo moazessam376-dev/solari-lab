@@ -9,13 +9,12 @@ from collections import Counter
 from typing import Any
 
 from rich.progress import BarColumn, Progress, TextColumn, TimeElapsedColumn
-from rich.table import Table
 
 from .. import ledger
 from ..cdp import CDP
 from ..client import SolariError
 from ..context import Context
-from ..theme import badge, console, ms, sparkline, verdict
+from ..theme import console, footer, kv, mark, method, ms, sparkline, table
 from . import Result
 
 PHASES = ("create", "connect", "navigate", "release", "replay")
@@ -157,11 +156,19 @@ async def run(
 
 def render(r: Result) -> None:
     d = r.data
-    t = Table(title=None, header_style="table.header", border_style="table.border", pad_edge=False)
-    for col in ("phase", "min", "p50", "p95", "max", "n", "trend"):
-        t.add_column(col, justify="right" if col not in ("phase", "trend") else "left")
+    t = table(
+        ("", "left"),
+        ("phase", "left"),
+        ("min", "right"),
+        ("p50", "right"),
+        ("p95", "right"),
+        ("max", "right"),
+        ("n", "right"),
+        ("trend", "left"),
+    )
     for p, s in d["phases"].items():
         t.add_row(
+            f"[accent]{mark('bench')}[/accent]",
             p,
             ms(s["min"]),
             f"[num]{ms(s['p50'])}[/num]",
@@ -171,17 +178,16 @@ def render(r: Result) -> None:
             f"[accent]{sparkline([v for v in d['series'][p] if v is not None])}[/accent]",
         )
     console.print(t)
-    hosts = ", ".join(f"{h} ×{c}" for h, c in d["hosts"].items()) or "-"
-    console.print(f"[key]hosts[/key]    [value]{hosts}[/value]")
+    console.print()
+    hosts = "   ".join(f"{h} ×{c}" for h, c in d["hosts"].items()) or "-"
+    kv("hosts", hosts)
     if d["failures"]:
         console.print(
-            f"[key]failures[/key] [fail]{len(d['failures'])}[/fail] " + "; ".join(d["failures"][:5])
+            f"  [key]FAILURES  [/key] [fail]{len(d['failures'])}[/fail] " + "; ".join(d["failures"][:5])
         )
     e = d["env"]
-    console.print(
-        f"[muted]method: {d['n']} lifecycles, concurrency {d['concurrency']}, stealth {'on' if d['stealth'] else 'off'}, target {d['url']}, raw CDP over websocket, {e['os']}, region {e['region']}, plan {e.get('plan') or '?'}, {e['time']}[/muted]"
+    method(
+        f"METHOD     {d['n']} lifecycles · concurrency {d['concurrency']} · stealth {'on' if d['stealth'] else 'off'} · "
+        f"{d['url']} · raw CDP over websocket · {e['os']} · {e['region']} · {e.get('plan') or '?'} · {e['time']}"
     )
-    console.print()
-    console.print(
-        f"{badge('BENCH')} {verdict(r.ok, 'CLEAN', 'FAILURES')} [muted]{r.summary} · wall {d['wall_s']:.1f}s[/muted]"
-    )
+    footer("bench", r.ok, ("CLEAN", "FAILURES", "SKIP"), f"{r.summary} · wall {d['wall_s']:.1f}s")

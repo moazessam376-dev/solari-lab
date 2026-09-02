@@ -7,13 +7,12 @@ import time
 from typing import Any
 
 import httpx
-from rich.table import Table
 
 from .. import ledger
 from ..cdp import CDP
 from ..client import SolariError
 from ..context import Context
-from ..theme import badge, console, verdict
+from ..theme import console, footer, method, pill, table
 from . import Result
 
 TRACE = "https://www.cloudflare.com/cdn-cgi/trace"
@@ -33,7 +32,15 @@ async def whois(ip: str | None) -> str:
         async with httpx.AsyncClient(timeout=8) as h:
             r = await h.get(f"https://ipinfo.io/{ip}/json")
             j = r.json()
-            return f"{j.get('org', '?')} · {j.get('city', '?')}, {j.get('country', '?')}"
+            org = str(j.get("org", "?"))
+            org = org.split(" ", 1)[1] if org.startswith("AS") and " " in org else org
+            org = (
+                org.replace(", Inc.", "")
+                .replace(" Limited", "")
+                .replace(", LLC", "")
+                .replace(" Enterprises", "")
+            )
+            return f"{org[:22]} · {j.get('city', '?')}, {j.get('country', '?')}"
     except Exception:  # noqa: BLE001
         return "?"
 
@@ -177,34 +184,46 @@ async def _run(ctx: Context, *, countries: list[str] | None = None, tiers: list[
 
 
 def render(r: Result) -> None:
-    t = Table(header_style="table.header", border_style="table.border", pad_edge=False)
-    for col in ("requested", "gateway confirmed", "egress ip", "loc", "owner", "page", "verdict"):
-        t.add_column(col)
+    t = table(
+        ("requested", "left"),
+        ("confirmed", "left"),
+        ("egress ip", "left"),
+        ("loc", "left"),
+        ("owner", "left"),
+        ("page", "left"),
+        ("verdict", "left"),
+    )
+    base = r.data.get("baseline_ip")
     for x in r.data["rows"]:
         res = x.get("resolved") or {}
         conf = f"{res.get('country', '')} {res.get('tier', '')}".strip() or "-"
-        page = (
-            "[pass]loaded[/pass]"
-            if x.get("page")
-            else ("[fail]failed[/fail]" if x.get("page") is False else "-")
-        )
+        page = "loaded" if x.get("page") else ("[fail]failed[/fail]" if x.get("page") is False else "-")
         if x["ok"] is None:
             v = "[muted]baseline[/muted]"
         elif x["ok"]:
-            v = "[pass]ROUTED[/pass]"
+            v = pill("ROUTED", "pass")
         elif x.get("routed") and x.get("geo") is False:
-            v = "[fail]WRONG COUNTRY[/fail]"
-        elif x.get("ip") == r.data.get("baseline_ip") and x.get("ip"):
-            v = "[fail]NOT PROXIED[/fail]"
+            v = pill("WRONG COUNTRY", "fail")
+        elif x.get("ip") and x.get("ip") == base:
+            v = pill("NOT PROXIED", "fail")
         else:
-            v = "[fail]NO ROUTE[/fail]"
-        t.add_row(x["label"], conf, x.get("ip") or "-", x.get("loc") or "-", x.get("org") or "-", page, v)
+            v = pill("NO ROUTE", "fail")
+        ip = x.get("ip") or "-"
+        t.add_row(
+            x["label"],
+            conf,
+            ip if len(ip) <= 18 else ip[:17] + "…",
+            x.get("loc") or "-",
+            x.get("org") or "-",
+            page,
+            v,
+        )
     console.print(t)
-    console.print(
-        "[muted]egress read from cloudflare.com/cdn-cgi/trace inside the session; owner from ipinfo.io; baseline is a stealth session with no proxy[/muted]"
-    )
     console.print()
-    console.print(f"{badge('PROXY')} {verdict(r.ok, 'ROUTED', 'BROKEN')} [muted]{r.summary}[/muted]")
+    method(
+        "egress read from cloudflare.com/cdn-cgi/trace inside the session · owner from ipinfo.io · baseline: stealth, no proxy"
+    )
+    footer("proxy", r.ok, ("ROUTED", "BROKEN", "SKIP"), r.summary)
 
 
 async def run(ctx: Context, **kw: Any) -> Result:

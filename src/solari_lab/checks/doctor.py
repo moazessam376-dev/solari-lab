@@ -7,13 +7,11 @@ import importlib.metadata as md
 import time
 from typing import Any
 
-from rich.table import Table
-
 from ..client import SolariError
 from ..context import Context
 from ..ledger import ledger_path
 from ..rates import PLANS
-from ..theme import badge, console, ms, verdict
+from ..theme import console, footer, ms
 from . import Result
 
 MAX_CAP_PROBE = 25
@@ -145,17 +143,10 @@ async def _run(ctx: Context, *, probe_cap: bool = True) -> Result:
 
 
 def render(r: Result) -> None:
-    t = Table(box=None, pad_edge=False, show_header=False, padding=(0, 2))
-    t.add_column("status", width=6)
-    t.add_column("check", style="key", width=22)
-    t.add_column("detail", style="value")
     for c in r.data["checks"]:
-        t.add_row(verdict(c["ok"], "ok", "fail", "skip"), c["name"], c["detail"])
-    console.print(t)
-    console.print()
-    console.print(
-        f"{badge('DOCTOR')} {verdict(r.ok, 'HEALTHY', 'PROBLEMS')} [muted]{r.summary} · {r.duration_s:.1f}s[/muted]"
-    )
+        status = {True: "[pass]ok[/pass]  ", False: "[fail]fail[/fail]", None: "[warn]skip[/warn]"}[c["ok"]]
+        console.print(f"  {status} [fg]{c['name']:<18}[/fg] [value]{c['detail']}[/value]")
+    footer("doctor", r.ok, ("HEALTHY", "PROBLEMS", "PARTIAL"), f"{r.summary} · {r.duration_s:.1f}s")
 
 
 async def run(ctx: Context, **kw: Any) -> Result:

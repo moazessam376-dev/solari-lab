@@ -11,14 +11,13 @@ from pathlib import Path
 from typing import Any
 
 import typer
-from rich.panel import Panel
 from rich.rule import Rule
 
 from . import __version__
 from .checks import Result, bench, cost, doctor, isolation, proxy, sessions
 from .client import SolariError
 from .context import Context
-from .theme import WORDMARK, badge, console, err_console
+from .theme import MARKS, WORDMARK, console, err_console, header, pill
 
 app = typer.Typer(
     add_completion=False,
@@ -48,13 +47,8 @@ def _run(
             await ctx.close()
 
     if not state["json"]:
-        console.print(
-            Rule(
-                f"{WORDMARK} [muted]{title}[/muted]" + ("  [warn]dry run[/warn]" if ctx.dry_run else ""),
-                style="rule.line",
-                align="left",
-            )
-        )
+        console.print()
+        header(title, ctx.dry_run)
     try:
         result = asyncio.run(go())
     except SolariError as err:
@@ -67,6 +61,36 @@ def _run(
     if result.ok is False:
         raise typer.Exit(1)
     return result
+
+
+def _home() -> None:
+    """The bare `solab` screen: marks, one line per command, flags."""
+    from rich.rule import Rule as _Rule
+
+    console.print()
+    console.print(f"{WORDMARK} [bold fg]A COMMAND LINE LAB FOR YOUR SOLARI ACCOUNT[/bold fg]")
+    console.print(_Rule(style="rule.line", characters="━"))
+    lines = {
+        "doctor": "is the key valid, which plan, how many browsers, is stealth allowed",
+        "bench": "create, connect, navigate, release and replay timings over N sessions",
+        "isolation": "does a new session inherit the last one's cookies and storage",
+        "proxy": "does each tier route to the country it claims",
+        "sessions": "open sessions from the ledger, live sandboxes from the API",
+        "cost": "spend estimated from the ledger and the rate card",
+        "replay": "replay url or file for a recorded session",
+        "profiles": "list, create or delete stored profiles",
+        "report": "everything above into one dark html page",
+    }
+    for cmd, text in lines.items():
+        console.print(f"  [accent]{MARKS[cmd]}[/accent]  [bold fg]{cmd:<11}[/bold fg] [muted]{text}[/muted]")
+    console.print()
+    console.print(
+        "  [key]FLAGS      [/key] [value]--json   --dry-run   --plan starter   --api-key   --region us-west[/value]"
+    )
+    console.print(_Rule(style="rule.line", characters="━"))
+    console.print(
+        f"  [muted.dim]solab <command> --help for options · docs.getsolari.com · v{__version__}[/muted.dim]"
+    )
 
 
 @app.callback()
@@ -90,7 +114,7 @@ def main(
         print(f"solab {__version__}")
         raise typer.Exit()
     if ctx.invoked_subcommand is None:
-        print(ctx.get_help())
+        _home()
         raise typer.Exit()
     state["ctx"] = Context(api_key=api_key, region=region, base_url=base_url, dry_run=dry_run, plan_name=plan)
     state["json"] = as_json
@@ -274,7 +298,8 @@ def report_cmd(
                 if name == "proxy" and ctx.plan_name == "free":
                     console.print("[muted]proxy check skipped: free plan[/muted]")
                     continue
-                console.print(Rule(f"{WORDMARK} [muted]{name}[/muted]", style="rule.line", align="left"))
+                console.print()
+                header(name, ctx.dry_run)
                 r = await fn(ctx, **kw)
                 results.append(r)
                 {"doctor": doctor, "bench": bench, "isolation": isolation, "proxy": proxy}[name].render(r)
@@ -286,14 +311,10 @@ def report_cmd(
     write_html(html, results, ctx.environment())
     if json_out:
         json_out.write_text(json.dumps([r.as_dict() for r in results], indent=2, default=str))
+    console.print(Rule(style="rule.line", characters="━"))
     console.print(
-        Panel(
-            f"[pass]report written[/pass] [value]{html}[/value]"
-            + (f"\n[muted]json {json_out}[/muted]" if json_out else ""),
-            border_style="panel.border",
-            title=f"{badge('REPORT')}",
-            title_align="left",
-        )
+        f"{pill('REPORT', 'cmd')} {pill('WRITTEN', 'pass')}  [value]{html}[/value]"
+        + (f"  [muted]json {json_out}[/muted]" if json_out else "")
     )
     if open_:
         webbrowser.open(html.resolve().as_uri())

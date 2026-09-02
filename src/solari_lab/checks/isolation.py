@@ -5,13 +5,11 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from rich.table import Table
-
 from .. import ledger
 from ..cdp import CDP
 from ..client import SolariError
 from ..context import Context
-from ..theme import badge, console, verdict
+from ..theme import console, footer, kv, method, pill, table
 from . import Result
 
 MARK = "solab-isolation-marker"
@@ -109,30 +107,28 @@ async def _run(ctx: Context, *, tries: int = 4, wipe: bool = False) -> Result:
 
 def render(r: Result) -> None:
     d = r.data
-    console.print(
-        f"[key]writer[/key]  [value]{d['writer_host']}[/value]  [muted]set a cookie and a localStorage key on example.com, then released[/muted]"
+    kv(
+        "writer",
+        f"{d['writer_host']}   [muted]set a cookie and a localStorage key on example.com, then released[/muted]",
     )
-    t = Table(header_style="table.header", border_style="table.border", pad_edge=False)
-    t.add_column("#", justify="right")
-    t.add_column("host")
-    t.add_column("same host")
-    t.add_column("state seen")
+    console.print()
+    t = table(("#", "right"), ("host", "left"), ("same host", "left"), ("state seen", "left"))
     for i, x in enumerate(d["reads"], 1):
-        seen = (
-            "[fail]LEAKED[/fail]"
-            if x.get("leaked")
-            else (
-                "[pass]clean[/pass]" if x.get("leaked") is False else f"[warn]{x.get('error') or '?'}[/warn]"
-            )
-        )
+        if x.get("leaked"):
+            seen = f"{pill('LEAKED', 'fail')} [muted]{x.get('origin') or ''}[/muted]"
+        elif x.get("leaked") is False:
+            seen = "[pass]clean[/pass]"
+        else:
+            seen = f"[warn]{x.get('error') or '?'}[/warn]"
         t.add_row(str(i), x["host"], "yes" if x.get("same_host") else "no", seen)
     console.print(t)
     if d.get("wipe"):
-        console.print("[muted]readers wiped cookies and site storage over CDP before reading[/muted]")
-    console.print()
-    console.print(
-        f"{badge('ISOLATION')} {verdict(r.ok, 'CLEAN', 'LEAK', 'INCONCLUSIVE')} [muted]{r.summary}[/muted]"
-    )
+        method("readers wiped cookies and site storage over CDP before reading")
+    footer("isolation", r.ok, ("CLEAN", "LEAK", "INCONCLUSIVE"), r.summary)
+    if r.ok is False and not d.get("wipe"):
+        console.print(
+            "           [muted.dim]fix on the client: SolariBrowser(clean_start=True) · solab isolation --wipe[/muted.dim]"
+        )
 
 
 async def run(ctx: Context, **kw: Any) -> Result:

@@ -5,13 +5,11 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from rich.table import Table
-
 from .. import ledger
 from ..client import SolariError
 from ..context import Context
 from ..rates import browser_cost
-from ..theme import badge, console, verdict
+from ..theme import console, footer, kv, method, pill, table
 from . import Result
 
 
@@ -77,14 +75,20 @@ async def run(ctx: Context, *, stale_minutes: int = 30, kill_stale: bool = False
 def render(r: Result) -> None:
     d = r.data
     if d["browsers"]:
-        t = Table(header_style="table.header", border_style="table.border", pad_edge=False)
-        for col in ("session", "host", "age", "source", "options", "est. cost", "status"):
-            t.add_column(col)
+        t = table(
+            ("session", "left"),
+            ("host", "left"),
+            ("age", "left"),
+            ("source", "left"),
+            ("options", "left"),
+            ("est. cost", "right"),
+            ("status", "left"),
+        )
         for x in d["browsers"]:
             status = (
-                "[pass]released[/pass]"
+                pill("RELEASED", "pass")
                 if x["killed"]
-                else ("[fail]stale[/fail]" if x["stale"] else "[muted]open[/muted]")
+                else (pill("STALE", "fail") if x["stale"] else "[muted]open[/muted]")
             )
             opts = ",".join(k for k, v in x["options"].items() if v) or "-"
             t.add_row(
@@ -98,11 +102,10 @@ def render(r: Result) -> None:
             )
         console.print(t)
     else:
-        console.print("[muted]no open browser sessions in the ledger[/muted]")
+        console.print("  [muted]no open browser sessions in the ledger[/muted]")
+    console.print()
     if d["sandboxes"]:
-        t = Table(header_style="table.header", border_style="table.border", pad_edge=False)
-        for col in ("sandbox", "status", "template", "created"):
-            t.add_column(col)
+        t = table(("sandbox", "left"), ("status", "left"), ("template", "left"), ("created", "left"))
         for s in d["sandboxes"]:
             t.add_row(
                 str(s.get("sandboxId") or s.get("id"))[-12:],
@@ -112,9 +115,8 @@ def render(r: Result) -> None:
             )
         console.print(t)
     else:
-        console.print("[muted]no live sandboxes[/muted]")
-    console.print(
-        "[muted]browser sessions come from the local ledger (Solari has no list endpoint); sandboxes from the API[/muted]"
+        kv("sandboxes", "none live")
+    method(
+        "browser sessions come from the local ledger (Solari has no list endpoint) · sandboxes from the API"
     )
-    console.print()
-    console.print(f"{badge('SESSIONS')} {verdict(r.ok, 'TIDY', 'LEAKS')} [muted]{r.summary}[/muted]")
+    footer("sessions", r.ok, ("TIDY", "LEAKS", "SKIP"), r.summary)
