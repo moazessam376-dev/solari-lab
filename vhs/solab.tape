@@ -6,7 +6,7 @@ Set FontSize 15
 Set Width 1180
 Set Height 720
 Set Padding 24
-Set Theme { "name": "solari", "background": "#0b0b0c", "foreground": "#e8e6e1", "cursor": "#ff7a1a", "black": "#0b0b0c", "red": "#ff4d4f", "green": "#38d16a", "yellow": "#f5c542", "blue": "#8a8a8a", "magenta": "#ff7a1a", "cyan": "#8a8a8a", "white": "#e8e6e1", "brightBlack": "#4a4a4a", "brightRed": "#ff4d4f", "brightGreen": "#38d16a", "brightYellow": "#f5c542", "brightBlue": "#8a8a8a", "brightMagenta": "#ff7a1a", "brightCyan": "#8a8a8a", "brightWhite": "#ffffff" }
+Set Theme { "name": "solari", "background": "#080a0e", "foreground": "#e7e7e2", "cursor": "#f5b301", "black": "#080a0e", "red": "#ff5c5c", "green": "#9bd89a", "yellow": "#f5c66a", "blue": "#939599", "magenta": "#f5b301", "cyan": "#819895", "white": "#e7e7e2", "brightBlack": "#474747", "brightRed": "#ff5c5c", "brightGreen": "#9bd89a", "brightYellow": "#f5c66a", "brightBlue": "#939599", "brightMagenta": "#f5b301", "brightCyan": "#819895", "brightWhite": "#ffffff" }
 Set TypingSpeed 40ms
 Set PlaybackSpeed 1.0
 

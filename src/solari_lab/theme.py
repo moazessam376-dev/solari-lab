@@ -1,7 +1,7 @@
 """One place for how solab looks.
 
-Instrument-panel structure with a phosphor voice: near-black ground, one warm
-accent, heavy horizontal rules instead of boxes, a fixed glyph per command,
+Instrument-panel structure with a phosphor voice, in Solari's own palette: black
+ground, one gold accent, heavy horizontal rules instead of boxes, a fixed glyph per command,
 hard-edged inverse pills for verdicts. No emoji, ever.
 """
 
@@ -12,15 +12,16 @@ from rich.rule import Rule
 from rich.table import Table
 from rich.theme import Theme
 
-ORANGE = "#ff7a1a"
-ORANGE_DIM = "#b85a16"
-GREY = "#8a8a8a"
-GREY_DIM = "#3a3a3e"
-GREEN = "#38d16a"
-RED = "#ff4d4f"
-YELLOW = "#f5c542"
-FG = "#ece7dc"
-BG = "#0b0b0c"
+# Solari's own tokens (getsolari.com): black ground, gold accent, grey secondary.
+ORANGE = "#f5b301"  # accent gold (name kept for callers)
+ORANGE_DIM = "#a37700"
+GREY = "#939599"
+GREY_DIM = "#3b3b3b"
+GREEN = "#9bd89a"
+RED = "#ff5c5c"
+YELLOW = "#f5c66a"
+FG = "#e7e7e2"
+BG = "#080a0e"
 
 THEME = Theme(
     {

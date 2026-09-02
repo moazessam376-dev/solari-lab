@@ -11,29 +11,29 @@ from ..checks import Result
 from ..theme import MARKS, ms
 
 CSS = """
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@500;700&display=swap');
-:root{--bg:#0b0b0c;--panel:#0e0e10;--line:#2a2a2e;--fg:#ece7dc;--muted:#8a8a8a;--dim:#3a3a3e;--accent:#ff7a1a;--green:#38d16a;--red:#ff4d4f;--yellow:#f5c542}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 "Space Grotesk",system-ui,sans-serif}
-.mono,.brand,.meta,.method,footer,table,.badge,.v,.spark,.tile .k,.tile .val{font-family:"Space Mono",ui-monospace,Menlo,monospace}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+:root{--bg:#080a0e;--panel:#0f1514;--line:#263634;--fg:#e7e7e2;--muted:#939599;--dim:#474747;--accent:#f5b301;--green:#9bd89a;--red:#ff5c5c;--yellow:#f5c66a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 "Inter",system-ui,sans-serif}
+.mono,.brand,.meta,.method,footer,table,.badge,.v,.spark,.tile .k,.tile .val{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
 main{max-width:1080px;margin:0 auto;padding:48px 28px 80px}
 header{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:2px solid var(--accent);padding-bottom:14px}
-.brand{font-size:20px;font-weight:700;letter-spacing:.02em}.brand b{color:var(--accent)}
+.brand{font-size:16px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.brand b{color:var(--accent)}
 .meta{color:var(--muted);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
-h1{font-size:56px;margin:28px 0 6px;font-weight:700;line-height:.95;text-transform:uppercase;letter-spacing:-.01em}h1 span{color:var(--accent)}
+h1{font-size:52px;margin:28px 0 6px;font-weight:600;line-height:1.02;letter-spacing:-.02em}h1 span{color:var(--accent)}
 .sub{color:var(--muted);margin:0 0 28px;max-width:720px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2px;margin:0 0 32px}
 .tile{background:var(--bg);padding:18px 20px;box-shadow:0 0 0 1px var(--line)}
 .tile .k{color:var(--muted);font-size:10px;letter-spacing:.16em;text-transform:uppercase}.tile .val{font-size:32px;font-weight:700;margin-top:6px;font-variant-numeric:tabular-nums}.tile .val.bad{color:var(--red)}
 section{border-top:1px solid var(--line);padding:22px 0 8px;margin:0 0 10px}
-section h2{margin:0 0 4px;font-size:22px;display:flex;align-items:center;gap:12px;text-transform:uppercase;font-weight:700}
-.mark{color:var(--accent);font-size:20px;font-family:"Space Mono",monospace}
-.badge{font-size:11px;letter-spacing:.1em;padding:3px 9px;background:var(--accent);color:#0b0b0c;font-weight:700}
-.v{font-size:11px;letter-spacing:.1em;padding:3px 9px;color:#0b0b0c;font-weight:700}.pass{background:var(--green)}.fail{background:var(--red)}.skip{background:var(--yellow)}
+section h2{margin:0 0 4px;font-size:22px;display:flex;align-items:center;gap:12px;font-weight:600;letter-spacing:-.01em}
+.mark{color:var(--accent);font-size:20px;font-family:"JetBrains Mono",monospace}
+.badge{font-size:11px;letter-spacing:.1em;padding:3px 9px;background:var(--accent);color:#080a0e;font-weight:700}
+.v{font-size:11px;letter-spacing:.1em;padding:3px 9px;color:#080a0e;font-weight:700}.pass{background:var(--green)}.fail{background:var(--red)}.skip{background:var(--yellow)}
 .summary{color:var(--muted);margin:0 0 14px;font-size:14px}
 table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:13px}th{color:var(--muted);font-weight:400;text-align:left;font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:6px 10px;border-bottom:1px solid var(--line)}
 td{padding:7px 10px;vertical-align:top}td.n{text-align:right}
 .ok{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--yellow)}.mono{font-size:13px}
-.pillok,.pillbad{padding:0 8px;color:#0b0b0c;font-weight:700}.pillok{background:var(--green)}.pillbad{background:var(--red)}
+.pillok,.pillbad{padding:0 8px;color:#080a0e;font-weight:700}.pillok{background:var(--green)}.pillbad{background:var(--red)}
 .spark{color:var(--accent);letter-spacing:1px}
 .method{color:var(--dim);font-size:11px;margin-top:12px;text-transform:uppercase;letter-spacing:.04em}.wrap{overflow-x:auto}
 footer{color:var(--dim);font-size:11px;margin-top:32px;border-top:1px solid var(--line);padding-top:14px;text-transform:uppercase;letter-spacing:.06em}
@@ -168,7 +168,7 @@ def write_html(path: Path, results: list[Result], env: dict[str, Any]) -> None:
         )
     doc = f"""<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>solab report · {e(env.get("time"))}</title><style>{CSS}</style></head>
 <body><main><header><div class=brand><b>▮ SOLAB</b> <b>///</b> REPORT</div><div class=meta>{e(env.get("time"))} · region {e(env.get("region"))} · plan {e(env.get("plan") or "?")} · key {e(env.get("key"))}</div></header>
-<h1>Solari account<br><span>report</span></h1><p class=sub>Measured from the client, against the live API. Every number below is reproducible with <span class=mono>solab report</span>.</p>
+<h1>Solari account <span>report</span></h1><p class=sub>Measured from the client, against the live API. Every number below is reproducible with <span class=mono>solab report</span>.</p>
 <div class=grid>{tiles_html}</div>{"".join(sections)}
 <footer>generated by solari-lab {e(env.get("solab"))} · python {e(env.get("python"))} · {e(env.get("os"))}</footer></main></body></html>"""
     path.write_text(doc, encoding="utf-8")
