@@ -22,7 +22,7 @@ from .theme import WORDMARK, badge, console, err_console
 
 app = typer.Typer(
     add_completion=False,
-    no_args_is_help=True,
+    invoke_without_command=True,
     rich_markup_mode="rich",
     help="Diagnostics, benchmarks and cost tracking for your Solari account.",
 )
@@ -71,6 +71,7 @@ def _run(
 
 @app.callback()
 def main(
+    ctx: typer.Context,
     api_key: str | None = typer.Option(
         None, "--api-key", envvar="SOLARI_API_KEY", help="Solari API key (or SOLARI_API_KEY)."
     ),
@@ -87,6 +88,9 @@ def main(
 ) -> None:
     if version:
         print(f"solab {__version__}")
+        raise typer.Exit()
+    if ctx.invoked_subcommand is None:
+        print(ctx.get_help())
         raise typer.Exit()
     state["ctx"] = Context(api_key=api_key, region=region, base_url=base_url, dry_run=dry_run, plan_name=plan)
     state["json"] = as_json
