@@ -81,6 +81,7 @@ def render(frames_dir: Path, gif: Path, mp4: Path | None, fps: int, hold: float,
     pad_x, pad_y = int(W * 0.025), int(H * 0.04)
     line_h = H / 34
     tight_h = line_h * 7
+    type_h = line_h * 5  # typing window: tighter, so the pan with the caret is visible
     out_dir = Path(tempfile.mkdtemp(prefix="cinematic-"))
     n_out = 0
     cam: np.ndarray | None = None
@@ -143,12 +144,15 @@ def render(frames_dir: Path, gif: Path, mp4: Path | None, fps: int, hold: float,
         else:
             x0, y0, x1, y1 = bbox
             if mode == "typing":
-                th = tight_h
+                th = type_h
                 tw = th * ASPECT
-                cx_caret, cy_line = caret if caret else (x1, y1)
-                # caret at 70% of the frame, but never slide past the start of the line
-                left_t = max(0.0, min(cx_caret - tw * 0.70, x0 - pad_x))
-                left_t = min(left_t, W - tw)
+                if caret:
+                    cx_caret, cy_line = caret
+                    left_t = cx_caret - tw * 0.55  # the caret leads; the frame slides with every character
+                else:
+                    cx_caret, cy_line = x1, y1
+                    left_t = x0 - pad_x  # caret gone (Enter): settle on the start of the line
+                left_t = max(0.0, min(left_t, W - tw))
                 target = np.array([left_t + tw / 2, cy_line, tw, th])
             elif mode == "generating":
                 th = tight_h * 1.15
@@ -169,7 +173,7 @@ def render(frames_dir: Path, gif: Path, mp4: Path | None, fps: int, hold: float,
 
         if cam is None:
             cam = target.copy()
-        k = {"typing": 0.18, "generating": 0.12, "done": 0.05}[mode]
+        k = {"typing": 0.22, "generating": 0.12, "done": 0.05}[mode]
         cam += (target - cam) * k
         cx, cy, cw_, ch_ = cam
         cw_i, ch_i = int(min(cw_, W)), int(min(ch_, H))
