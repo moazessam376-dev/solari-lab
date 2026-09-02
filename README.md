@@ -4,6 +4,10 @@
 
 Every command prints a verdict, and `solab report` turns the whole run into a single dark HTML page you can share.
 
+![solab in action](docs/solab.gif)
+
+Sample report from a live run: [docs/solab-report.html](docs/solab-report.html).
+
 ## Install
 
 ```bash

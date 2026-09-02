@@ -1,5 +1,6 @@
 # Render with: vhs vhs/solab.tape   (needs SOLARI_API_KEY in ../.env; spends a few cents)
 Output docs/solab.gif
+Output ../.frames_lab/
 Set Shell zsh
 Set FontSize 15
 Set Width 1180
