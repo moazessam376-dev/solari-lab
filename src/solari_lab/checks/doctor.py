@@ -61,6 +61,38 @@ async def _run(ctx: Context, *, probe_cap: bool = True) -> Result:
         d["error"] = str(err)
         return Result("doctor", False, "API key rejected", d, started, time.time())
 
+    # 1b. network floor: cold = fresh TCP+TLS+HTTP each time; warm = same connection reused
+    import httpx
+
+    cold: list[float] = []
+    warm: list[float] = []
+    url = f"{ctx.client.base_url}/health"
+    for _ in range(4):
+        t0 = time.perf_counter()
+        try:
+            async with httpx.AsyncClient(timeout=10) as h:
+                await h.get(url)
+            cold.append(time.perf_counter() - t0)
+        except Exception:  # noqa: BLE001
+            pass
+    try:
+        async with httpx.AsyncClient(timeout=10) as h:
+            await h.get(url)
+            for _ in range(6):
+                t0 = time.perf_counter()
+                await h.get(url)
+                warm.append(time.perf_counter() - t0)
+    except Exception:  # noqa: BLE001
+        pass
+    if warm or cold:
+        d["network_floor_s"] = min(warm) if warm else None
+        d["network_cold_s"] = min(cold) if cold else None
+        add(
+            "network floor",
+            True,
+            f"{ms(d['network_floor_s'])} warm round trip, {ms(d['network_cold_s'])} cold (TLS) to {ctx.region}",
+        )
+
     # 2. plan via stealth probe
     plan_name = await ctx.detect_plan()
     d["plan"] = plan_name
