@@ -26,7 +26,7 @@ def _pkg(name: str) -> str | None:
         return None
 
 
-async def run(ctx: Context, *, probe_cap: bool = True) -> Result:
+async def _run(ctx: Context, *, probe_cap: bool = True) -> Result:
     started = time.time()
     d: dict[str, Any] = {"checks": []}
     ok = True
@@ -156,3 +156,12 @@ def render(r: Result) -> None:
     console.print(
         f"{badge('DOCTOR')} {verdict(r.ok, 'HEALTHY', 'PROBLEMS')} [muted]{r.summary} · {r.duration_s:.1f}s[/muted]"
     )
+
+
+async def run(ctx: Context, **kw: Any) -> Result:
+    if ctx.dry_run:
+        return await _run(ctx, **kw)
+    with console.status(
+        "[muted]probing key, plan, caps and latency[/muted]", spinner="dots", spinner_style="accent"
+    ):
+        return await _run(ctx, **kw)

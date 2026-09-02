@@ -44,7 +44,7 @@ async def _session(ctx: Context, js: str, *, wipe: bool) -> dict[str, Any]:
     return out
 
 
-async def run(ctx: Context, *, tries: int = 4, wipe: bool = False) -> Result:
+async def _run(ctx: Context, *, tries: int = 4, wipe: bool = False) -> Result:
     started = time.time()
     if ctx.dry_run:
         reads = [
@@ -133,3 +133,14 @@ def render(r: Result) -> None:
     console.print(
         f"{badge('ISOLATION')} {verdict(r.ok, 'CLEAN', 'LEAK', 'INCONCLUSIVE')} [muted]{r.summary}[/muted]"
     )
+
+
+async def run(ctx: Context, **kw: Any) -> Result:
+    if ctx.dry_run:
+        return await _run(ctx, **kw)
+    with console.status(
+        "[muted]writing a marker, then reading it back from fresh sessions[/muted]",
+        spinner="dots",
+        spinner_style="accent",
+    ):
+        return await _run(ctx, **kw)

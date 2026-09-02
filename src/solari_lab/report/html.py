@@ -20,7 +20,7 @@ header{display:flex;align-items:baseline;justify-content:space-between;gap:16px;
 h1{font-size:28px;margin:24px 0 4px;font-weight:650}.sub{color:var(--muted);margin:0 0 28px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:0 0 28px}
 .tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
-.tile .k{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}.tile .v{font-size:22px;font-weight:650;margin-top:4px;font-variant-numeric:tabular-nums}
+.tile .k{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}.tile .val{font-size:22px;font-weight:650;margin-top:4px;font-variant-numeric:tabular-nums}
 section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:0 0 18px}
 section h2{margin:0 0 4px;font-size:16px;display:flex;align-items:center;gap:10px}.badge{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.1em;padding:3px 8px;border-radius:4px;background:var(--accent);color:#111}
 .v{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.1em;padding:3px 8px;border-radius:4px;color:#111}.pass{background:var(--green)}.fail{background:var(--red)}.skip{background:var(--yellow)}
@@ -145,7 +145,7 @@ def write_html(path: Path, results: list[Result], env: dict[str, Any]) -> None:
             rows = [x for x in r.data["rows"] if x["ok"] is not None]
             tiles.append(("proxy tiers routing", f"{sum(1 for x in rows if x['ok'])}/{len(rows)}"))
     tiles_html = "".join(
-        f"<div class=tile><div class=k>{e(k)}</div><div class=v>{e(v)}</div></div>" for k, v in tiles
+        f"<div class=tile><div class=k>{e(k)}</div><div class=val>{e(v)}</div></div>" for k, v in tiles
     )
     sections = []
     for r in results:

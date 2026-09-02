@@ -91,7 +91,7 @@ def _requested_country(proxy: Any) -> str | None:
     return None
 
 
-async def run(ctx: Context, *, countries: list[str] | None = None, tiers: list[str] | None = None) -> Result:
+async def _run(ctx: Context, *, countries: list[str] | None = None, tiers: list[str] | None = None) -> Result:
     started = time.time()
     countries = countries or ["us", "gb"]
     tiers = tiers or ["residential", "static"]
@@ -205,3 +205,14 @@ def render(r: Result) -> None:
     )
     console.print()
     console.print(f"{badge('PROXY')} {verdict(r.ok, 'ROUTED', 'BROKEN')} [muted]{r.summary}[/muted]")
+
+
+async def run(ctx: Context, **kw: Any) -> Result:
+    if ctx.dry_run:
+        return await _run(ctx, **kw)
+    with console.status(
+        "[muted]creating sessions per tier and reading egress from the wire[/muted]",
+        spinner="dots",
+        spinner_style="accent",
+    ):
+        return await _run(ctx, **kw)
