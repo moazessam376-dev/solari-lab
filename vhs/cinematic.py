@@ -27,8 +27,8 @@ from PIL import Image
 
 OUT_W, OUT_H = 1180, 540  # wide frame: terminal lines are wide, so the camera can get tight
 ASPECT = OUT_W / OUT_H
-GIF_W = 860
-GIF_FPS = 12
+GIF_W = 800
+GIF_FPS = 10
 
 
 def load_pairs(frames_dir: Path) -> list[tuple[Path, Path | None]]:
@@ -120,6 +120,8 @@ def render(frames_dir: Path, gif: Path, mp4: Path | None, fps: int, speed: float
         cw_ = min(cw_, W)
         ch_ = min(ch_, H)
         left = int(max(0, min(W - cw_, cx - cw_ / 2)))
+        if bbox is not None:
+            left = min(left, max(0, bbox[0] - pad_x // 2))  # never clip the first character while easing
         top = int(min(H - ch_, cy - ch_ / 2))  # negative = letterbox above
         cw_i, ch_i = int(cw_), int(ch_)
         canvas = np.empty((ch_i, cw_i, 3), dtype=np.uint8)
