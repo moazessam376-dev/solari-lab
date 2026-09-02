@@ -185,6 +185,6 @@ async def run(ctx: Context, **kw: Any) -> Result:
     if ctx.dry_run:
         return await _run(ctx, **kw)
     with console.status(
-        "[muted]probing key, plan, caps and latency[/muted]", spinner="dots", spinner_style="accent"
+        "[muted]probing key, plan, caps and latency[/muted]", spinner="simpleDotsScrolling", spinner_style="accent", refresh_per_second=4
     ):
         return await _run(ctx, **kw)

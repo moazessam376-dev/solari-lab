@@ -146,8 +146,10 @@ def render(frames_dir: Path, gif: Path, mp4: Path | None, fps: int, hold: float,
                 th = tight_h
                 tw = th * ASPECT
                 cx_caret, cy_line = caret if caret else (x1, y1)
-                tx = max(tw / 2, min(W - tw / 2, cx_caret - tw * 0.30 + tw / 2))
-                target = np.array([tx, cy_line, tw, th])
+                # caret at 70% of the frame, but never slide past the start of the line
+                left_t = max(0.0, min(cx_caret - tw * 0.70, x0 - pad_x))
+                left_t = min(left_t, W - tw)
+                target = np.array([left_t + tw / 2, cy_line, tw, th])
             elif mode == "generating":
                 th = tight_h * 1.15
                 tw = max(th * ASPECT, (x1 - x0) + 2 * pad_x)
