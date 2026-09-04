@@ -98,7 +98,7 @@ async def run(
         for i in range(n):
             rows.append(
                 {
-                    "host": f"ip-10-0-1{i % 3}-1",
+                    "host": f"host-{chr(97 + i % 3)}",
                     "error": None,
                     "phases": {
                         "create": random.uniform(0.2, 0.9),

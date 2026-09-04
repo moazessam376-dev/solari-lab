@@ -12,3 +12,4 @@ build/
 replays/
 screenshots/
 FINDINGS*.md
+.DS_Store

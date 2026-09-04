@@ -47,15 +47,15 @@ async def _run(ctx: Context, *, tries: int = 4, wipe: bool = False) -> Result:
     if ctx.dry_run:
         reads = [
             {
-                "host": "ip-10-0-10-130",
+                "host": "host-a",
                 "same_host": True,
                 "leaked": not wipe,
                 "origin": None if wipe else "this run",
             },
-            {"host": "ip-10-0-11-229", "same_host": False, "leaked": False},
+            {"host": "host-b", "same_host": False, "leaked": False},
         ]
         data = {
-            "writer_host": "ip-10-0-10-130",
+            "writer_host": "host-a",
             "reads": reads,
             "same_host": 1,
             "leaks": 0 if wipe else 1,

@@ -154,9 +154,6 @@ def test_proxy_trace_parse():
     t = proxy.parse_trace("fl=1\nip=1.2.3.4\nloc=GB\n")
     assert t["ip"] == "1.2.3.4" and t["loc"] == "GB"
     assert proxy.parse_trace(None) == {}
-    assert proxy._requested_country({"country": "us"}) == "us" and proxy._requested_country("smart") is None
-
-
 async def test_isolation_and_proxy_dry_run(ctx):
     ctx.dry_run = True
     r = await isolation.run(ctx)

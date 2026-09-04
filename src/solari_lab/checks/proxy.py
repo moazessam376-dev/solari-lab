@@ -90,14 +90,6 @@ async def _probe(ctx: Context, *, proxy: Any, stealth: bool) -> dict[str, Any]:
     return out
 
 
-def _requested_country(proxy: Any) -> str | None:
-    if isinstance(proxy, dict):
-        return proxy.get("country")
-    if isinstance(proxy, str) and proxy not in ("smart", "off"):
-        return proxy
-    return None
-
-
 async def _run(ctx: Context, *, countries: list[str] | None = None, tiers: list[str] | None = None) -> Result:
     started = time.time()
     countries = countries or ["us", "gb"]
@@ -129,7 +121,7 @@ async def _run(ctx: Context, *, countries: list[str] | None = None, tiers: list[
             {
                 "label": "gb static",
                 "resolved": {"country": "gb", "tier": "static"},
-                "ip": "212.102.124.86",
+                "ip": "203.0.113.10",
                 "loc": "GB",
                 "org": "LonConnect Ltd · London, GB",
                 "routed": True,
